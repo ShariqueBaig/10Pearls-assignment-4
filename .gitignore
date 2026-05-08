@@ -1,0 +1,11 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# Postman local files (if any)
+*.postman_environment
+*.postman_globals
+
+# Temporary files
+*.tmp
+*.log
