@@ -1,0 +1,323 @@
+{
+	"info": {
+		"_postman_id": "c1f2e3d4-b5a6-4c7d-8e9f-0a1b2c3d4e5f",
+		"name": "Assignment 4 - API Testing with Postman, Sharique",
+		"description": "Postman collection for Assignment 4, demonstrating GET, POST, PUT, PATCH, and DELETE methods, variable handling, pre-request scripts, and test assertions.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "1. POST - Create Object",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generate random data for the request body",
+							"const randomName = \"Premium Laptop \" + Math.floor(Math.random() * 9999);",
+							"const randomYear = 2024;",
+							"const randomPrice = (Math.random() * 2000 + 500).toFixed(2);",
+							"",
+							"pm.collectionVariables.set(\"product_name\", randomName);",
+							"pm.collectionVariables.set(\"product_year\", randomYear);",
+							"pm.collectionVariables.set(\"product_price\", parseFloat(randomPrice));",
+							"",
+							"console.log(\"Pre-request: Generated random product - \" + randomName);"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"console.log(\"Response: Created Object with ID: \" + responseData.id);",
+							"",
+							"// API Chaining: Set the objectId for subsequent requests",
+							"pm.collectionVariables.set(\"objectId\", responseData.id);",
+							"",
+							"pm.test(\"Verify product name matches input\", function () {",
+							"    pm.expect(responseData.name).to.eql(pm.collectionVariables.get(\"product_name\"));",
+							"});",
+							"",
+							"pm.test(\"Verify nested data exists\", function () {",
+							"    pm.expect(responseData.data).to.be.an('object');",
+							"    pm.expect(responseData.data.year).to.eql(pm.collectionVariables.get(\"product_year\"));",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"name\": \"{{product_name}}\",\n   \"data\": {\n      \"year\": {{product_year}},\n      \"price\": {{product_price}},\n      \"CPU model\": \"Intel Core i9\",\n      \"Hard disk size\": \"1 TB\"\n   }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/objects",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"objects"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "2. GET - Retrieve Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"console.log(\"Retrieved Object Name: \" + responseData.name);",
+							"",
+							"pm.test(\"Object ID matches the variable\", function () {",
+							"    pm.expect(responseData.id).to.eql(pm.collectionVariables.get(\"objectId\"));",
+							"});",
+							"",
+							"pm.test(\"Response time is less than 1000ms\", function () {",
+							"    pm.expect(pm.response.responseTime).to.be.below(1000);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/objects/{{objectId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"objects",
+						"{{objectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "3. PUT - Update Object (Full)",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.collectionVariables.set(\"updated_price\", 1999.99);",
+							"pm.collectionVariables.set(\"updated_name\", pm.collectionVariables.get(\"product_name\") + \" - Ultra Edition\");"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"pm.test(\"Verify full update applied\", function () {",
+							"    pm.expect(responseData.name).to.eql(pm.collectionVariables.get(\"updated_name\"));",
+							"    pm.expect(responseData.data.price).to.eql(1999.99);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"name\": \"{{updated_name}}\",\n   \"data\": {\n      \"year\": 2025,\n      \"price\": {{updated_price}},\n      \"CPU model\": \"Apple M3 Max\",\n      \"Hard disk size\": \"2 TB\",\n      \"color\": \"Space Black\"\n   }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/objects/{{objectId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"objects",
+						"{{objectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "4. PATCH - Partial Update",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"console.log(\"Patched Name: \" + responseData.name);",
+							"",
+							"pm.test(\"Name was partially updated\", function () {",
+							"    pm.expect(responseData.name).to.eql(\"Partially Patched Laptop\");",
+							"});",
+							"",
+							"// 5. Write Chai assertions (including failing test case)",
+							"pm.test(\"This is the intentional FAILING test case\", function () {",
+							"    pm.expect(pm.response.code).to.eql(404, \"Expected status 404 but got 200\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "PATCH",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n   \"name\": \"Partially Patched Laptop\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{baseUrl}}/objects/{{objectId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"objects",
+						"{{objectId}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "5. DELETE - Delete Object",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {",
+							"    pm.response.to.have.status(200);",
+							"});",
+							"",
+							"const responseData = pm.response.json();",
+							"pm.test(\"Confirmation message received\", function () {",
+							"    pm.expect(responseData.message).to.include(\"has been deleted\");",
+							"});",
+							"",
+							"// Clean up variables",
+							"pm.collectionVariables.unset(\"objectId\");"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/objects/{{objectId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"objects",
+						"{{objectId}}"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.restful-api.dev",
+			"type": "string"
+		},
+		{
+			"key": "objectId",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "product_name",
+			"value": ""
+		},
+		{
+			"key": "product_year",
+			"value": ""
+		},
+		{
+			"key": "product_price",
+			"value": ""
+		},
+		{
+			"key": "updated_name",
+			"value": ""
+		},
+		{
+			"key": "updated_price",
+			"value": ""
+		}
+	]
+}
